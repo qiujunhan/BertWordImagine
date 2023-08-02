@@ -23,16 +23,18 @@ def build_dataset(config):
 
     def load_dataset(path,mlb,config,train, pad_size=32):
         contents = []
-        labels = np.load(path+".npy")
+
         classes_index = {a:i for i,a in  enumerate(mlb.classes_)}
         classes_count = {i:0 for i,a in  enumerate(mlb.classes_)}
         with open(path+".json", 'r', encoding='UTF-8') as f:
             raw = f.read()
             raw = json.loads(raw)
-            for i,content in enumerate(tqdm(raw)):
-                content = [i[0] for i in content]
-                content = np.array(content)
+            id_tag = raw["id_tag"]
+            for i,content in enumerate(tqdm(raw["tags"])):
+                content = [id_tag[i] for i in  content]
 
+                content = np.array(content)
+                label = mlb.transform([content])
                 if len(content) == 0:
                     continue
                 randint = random.randint(1,max(1,int(len(content)/2)))
@@ -40,9 +42,9 @@ def build_dataset(config):
                 sample_index = sorted(np.random.choice(len(content), randint, replace=False))
                 content = content[sample_index]
 
-                label = labels[i]
-                label[np.where(label > config.threshold)] = 1
-                label[np.where(label <= config.threshold)] = 0
+
+
+
                 for label_index in np.where(label ==1)[0]:
                     classes_count[label_index] += 1
                 content_add_label = content
